@@ -21,7 +21,7 @@ export default class Login extends Component {
                             <Card title="LOG IN" style={{ width: "40%", left: "30%", right: "30%", top: "10%", border: "solid 2px #95ccff", boxShadow: "#0000004a 0px 4px 8px 0px" }}>
                                 <Form onSubmit={this.handleSubmit} className="login-form">
                                     <Form.Item>
-                                        <Input prefix={<Icon type="user" style={{ color: 'rgba(0,0,0,.25)' }} />} placeholder="Username" />
+                                        <Input prefix={<Icon type="mail" style={{ color: 'rgba(0,0,0,.25)' }} />} placeholder="Email" />
                                     </Form.Item>
                                     <Form.Item>
                                         <Input prefix={<Icon type="lock" style={{ color: 'rgba(0,0,0,.25)' }} />} type="password" placeholder="Password" />

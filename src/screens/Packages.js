@@ -1,7 +1,10 @@
 import React, { Component } from 'react';
 import Side from './Side';
 import { Row, Col } from 'antd';
-import { Layout, Menu, Divider, Icon, Card, Typography, Skeleton, Statistic, Button } from 'antd';
+import PaypalExpressBtn from 'react-paypal-express-checkout';
+import { Layout, Menu, Divider, Icon, Card, Typography, Skeleton, Statistic, Button, notification, DatePicker, TimePicker } from 'antd';
+import FormItem from 'antd/lib/form/FormItem';
+import moment from 'moment';
 const { SubMenu } = Menu;
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -33,8 +36,11 @@ export default class Packages extends Component {
                     description: "",
                 }
             ],
-            selectedPackages: []
+            date: moment(),
+            selectedPackages: [],
+            total: 0
         }
+        this.onChangeDate = this.onChangeDate.bind(this);
     }
 
     selectPackage(i) {
@@ -43,11 +49,39 @@ export default class Packages extends Component {
             selected = selected.filter(s => s != i)
         else
             selected.push(i);
-        this.setState({ selectedPackages: selected });
+
+        let total = 0;
+        for (let i = 0; i < selected.length; i++) {
+            total += this.state.packages[selected[i]].cost;
+        }
+
+        this.setState({ selectedPackages: selected, total: total });
+    }
+
+    onChangeDate(e) {
+        this.setState({ date: e })
+    }
+
+    onPayPalSuccess(payment) {
+        console.log("Paypal:", payment);
+        notification.success({ message: 'ORDER PLACED SUCCESSFULLY!' })
+    }
+
+    onPayPalCancel(data) {
+        console.log("Paypal:", data);
+        notification.info({ message: 'ORDER CANCELLED' })
+    }
+
+    onPayPalError(err) {
+        console.log("Paypal:", err);
+        notification.error({ message: 'ERROR PLACING ORDER!' })
     }
 
     render() {
-        console.log(this.state.selectedPackages)
+        //PAYPAL: pepito@pweb.com, PASS:123123123
+        const client = {
+            sandbox: 'AWSxD2HAJEELwL_YX_sOog922PCNIhOVbowCx7Sj6NRRfgeFSBOgqcMqwGOz6dLcV6WV_qfYxBwpVG77',
+        }
         return (
             <>
                 <Layout style={{ height: "100vh" }}>
@@ -66,6 +100,11 @@ export default class Packages extends Component {
                         <Content style={{ background: '#fff', padding: 24, margin: 24, minHeight: 280, }}>
                             <Title><Icon type="shop" theme="twoTone" /> PACKAGES</Title>
                             <Divider dashed />
+                            <FormItem label="1. Select Order Date:">
+                                <DatePicker showTime use12Hours placeholder="Select Time" onOk={this.onChangeDate} />
+                            </FormItem>
+                            <Divider dashed />
+                            <p>2. Select your Packages:</p>
                             {
                                 this.state.packages.length > 0 ? this.state.packages.map((p, i) => {
                                     return (
@@ -93,8 +132,8 @@ export default class Packages extends Component {
                     bottom: "0",
                     boxShadow: "rgba(0, 0, 0, 0.29) 0px 0px 8px 0px"
                 }}>
-                    <Statistic title="Total" value={112893} precision={2} />
-                    <Button style={{ marginTop: 16, float: 'right' }} block type="primary">Buy</Button>
+                    <Statistic title="Total" value={this.state.total} precision={2} />
+                    <PaypalExpressBtn client={client} currency={'USD'} total={this.state.total} onError={this.onPayPalError} onSuccess={this.onPayPalSuccess} onCancel={this.onPayPalCancel} />
                 </Card>
             </>
         )

@@ -9,7 +9,7 @@ export default class Side extends Component {
     }
 
     render() {
-        console.log(this.props)
+        // console.log(this.props)
         return (
             <Sider width={200} style={{ background: '#fff' }}>
                 <Menu mode="inline" defaultSelectedKeys={[this.props.tab]} style={{ height: '100%', borderRight: 0 }}>

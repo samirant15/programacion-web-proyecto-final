@@ -120,6 +120,7 @@ export default class Orders extends Component {
             }
         ];
         console.log(this.state.selectedPackages)
+
         return (
             <>
                 <Layout style={{ height: "100vh" }}>
