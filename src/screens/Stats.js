@@ -1,17 +1,64 @@
 import React, { Component } from 'react';
 import Side from './Side';
-import { Layout, Menu, Form, Icon, Input, Card, Button, Typography, Divider, Row, Col, Statistic } from 'antd';
+import { Layout, Menu, Form, Icon, Input, Card, Button, Typography, Divider, Row, Col, Statistic, notification } from 'antd';
 import { Chart } from "react-google-charts";
+import axios from 'axios';
+import moment from 'moment';
 const { SubMenu } = Menu;
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
-const IconFont = Icon.createFromIconfontCN({
-    scriptUrl: '//at.alicdn.com/t/font_8d5l8fzk5b87iudi.js',
-});
+
+const lineChartOptions = { title: "Orders Placed", curveType: "function", legend: { position: "bottom" } };
+let lineChartData = [];
+
+let pieChartData = [];
 
 export default class Stats extends Component {
     constructor(props) {
         super(props);
+        this.state = {
+            token: '',
+            orders: [],
+        }
+    }
+
+    async componentDidMount() {
+        try {
+            let token = await localStorage.getItem('token');
+            let orders = await axios.get('http://api.juandiii.com/api/orders', { headers: { Authorization: "Bearer " + token } });
+
+            lineChartData = [['DATE', 'TOTAL'], ...orders.data.map(o => { return [moment.unix(o.orderDate / 1000).format('YYYY-MM-DD'), o.total] })];
+
+            let ordersCompleted = 0;
+            let ordersInProcess = 0;
+            let ordersPending = 0;
+
+            orders.data.forEach(o => {
+                if (o.to < moment().unix())
+                    ordersCompleted++
+                else if (o.from > moment().unix())
+                    ordersPending++
+                else
+                    ordersInProcess++;
+            })
+
+            pieChartData = [['Type', 'Amount'], ['Completed Orders', ordersCompleted], ['Orders in process', ordersInProcess], ['Pending Orders', ordersPending]];
+
+            this.setState({ orders: orders.data, token })
+        } catch (error) {
+            if (error.response.status === 401) {
+                this.logout();
+            }
+            console.log(error)
+            notification.error({ message: 'ERROR LOADING DATA!' })
+        }
+    }
+
+    logout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        this.props.history.push("/");
+        notification.error({ message: 'YOU HAVE BEEN LOGED OUT!' })
     }
 
     render() {
@@ -24,7 +71,7 @@ export default class Stats extends Component {
                                 <h1 style={{ color: "#fff" }}><Icon type="camera" theme="twoTone" /> EVENTS MEDIA</h1>
                             </Col>
                             <Col span={1}>
-                                <Button style={{ right: 0 }} type="dashed" shape="round" ghost><Icon type="logout" /> LOGOUT</Button>
+                                <Button onClick={this.logout} style={{ right: 0 }} type="dashed" shape="round" ghost><Icon type="logout" /> LOGOUT</Button>
                             </Col>
                         </Row>
                     </Header>
@@ -35,13 +82,23 @@ export default class Stats extends Component {
                             <Divider dashed />
                             <Row>
                                 <Col span={12}>
-                                    <LineChart />
+                                    <Chart
+                                        chartType="LineChart"
+                                        width="100%"
+                                        height="400px"
+                                        data={lineChartData}
+                                        options={lineChartOptions}
+                                    />
                                 </Col>
                                 <Col span={6}>
-                                    <PieChart />
-                                </Col>
-                                <Col span={6}>
-                                    <Statistic title="Todays Orders" value={93} suffix="/ 100" />
+                                    <Chart
+                                        width={'500px'}
+                                        height={'300px'}
+                                        chartType="PieChart"
+                                        loader={<div>Loading Chart...</div>}
+                                        data={pieChartData}
+                                        options={{ title: 'Orders status', }}
+                                    />
                                 </Col>
                             </Row>
                         </Content>

@@ -22,12 +22,23 @@ export default class Users extends Component {
 
     async componentDidMount() {
         try {
-            let users = await axios.get('http://localhost:38081/api/users');
-            this.setState({ users: users.data })
+            let token = await localStorage.getItem('token');
+            let users = await axios.get('http://api.juandiii.com/api/users', { headers: { Authorization: "Bearer " + token } });
+            this.setState({ users: users.data, token })
         } catch (error) {
+            if (error.response.status === 401) {
+                this.logout();
+            }
             console.log(error)
-            notification.error('ERROR LOADING USERS!')
+            notification.error({ message: 'ERROR LOADING USERS!' })
         }
+    }
+
+    logout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        this.props.history.push("/");
+        notification.error({ message: 'YOU HAVE BEEN LOGED OUT!' })
     }
 
     onChange(e) {
@@ -40,16 +51,19 @@ export default class Users extends Component {
     async submitUser() {
         console.log(this.state.newUser.id)
         try {
-            if (this.state.newUser.id) {
-                let res = await axios.put('http://localhost:38081/api/users/' + this.state.newUser.id, this.state.newUser);
+            if (this.state.newUser.id) {//EDIT
+                let res = await axios.put('http://api.juandiii.com/api/users/' + this.state.newUser.id, this.state.newUser, { headers: { Authorization: "Bearer " + this.state.token } });
                 notification.success({ message: 'USER EDITED SUCCESSFULLY!' })
-            } else {
-                let res = await axios.post('http://localhost:38081/api/users', this.state.newUser);
+            } else {//CREATE
+                let res = await axios.post('http://api.juandiii.com/api/users', this.state.newUser, { headers: { Authorization: "Bearer " + this.state.token } });
                 notification.success({ message: 'USER ADDED SUCCESSFULLY!' })
             }
-            let users = await axios.get('http://localhost:38081/api/users');
+            let users = await axios.get('http://api.juandiii.com/api/users', { headers: { Authorization: "Bearer " + this.state.token } });
             this.setState({ add_user_modal: false, newUser: {}, users: users.data })
         } catch (error) {
+            if (error.response.status === 401) {
+                this.logout();
+            }
             console.log(error)
             notification.error({ message: 'ERROR SUBMITING USER!' })
         }
@@ -63,11 +77,14 @@ export default class Users extends Component {
     async deleteUser(id) {
         let user = this.state.users.find(u => u.id == id);
         try {
-            let res = await axios.delete('http://localhost:38081/api/users/' + user.id);
+            let res = await axios.delete('http://api.juandiii.com/api/users/' + user.id, { headers: { Authorization: "Bearer " + this.state.token } });
             notification.success({ message: 'USER EDITED SUCCESSFULLY!' })
-            let users = await axios.get('http://localhost:38081/api/users');
+            let users = await axios.get('http://api.juandiii.com/api/users', { headers: { Authorization: "Bearer " + this.state.token } });
             this.setState({ add_user_modal: false, newUser: {}, users: users.data })
         } catch (error) {
+            if (error.response.status === 401) {
+                this.logout();
+            }
             console.log(error)
             notification.error({ message: 'ERROR DELETING USER!' })
         }
@@ -119,7 +136,7 @@ export default class Users extends Component {
                                 <h1 style={{ color: "#fff" }}><Icon type="camera" theme="twoTone" /> EVENTS MEDIA</h1>
                             </Col>
                             <Col span={1}>
-                                <Button style={{ right: 0 }} type="dashed" shape="round" ghost><Icon type="logout" /> LOGOUT</Button>
+                                <Button onClick={this.logout} style={{ right: 0 }} type="dashed" shape="round" ghost><Icon type="logout" /> LOGOUT</Button>
                             </Col>
                         </Row>
                     </Header>

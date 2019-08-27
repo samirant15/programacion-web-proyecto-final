@@ -4,6 +4,7 @@ import { Row, Col } from 'antd';
 import PaypalExpressBtn from 'react-paypal-express-checkout';
 import { Layout, Menu, Divider, Icon, Card, Typography, Skeleton, Statistic, Button, notification, DatePicker, TimePicker } from 'antd';
 import FormItem from 'antd/lib/form/FormItem';
+import axios from 'axios';
 import moment from 'moment';
 const { SubMenu } = Menu;
 const { Header, Content, Sider } = Layout;
@@ -14,6 +15,7 @@ export default class Packages extends Component {
         super(props);
 
         this.state = {
+            token: '',
             packages: [
                 {
                     name: "Pre-Boda",
@@ -36,11 +38,24 @@ export default class Packages extends Component {
                     description: "",
                 }
             ],
-            date: moment(),
+            dateFrom: moment(),
+            dateTo: moment(),
             selectedPackages: [],
             total: 0
         }
-        this.onChangeDate = this.onChangeDate.bind(this);
+        this.onChangeDateFrom = this.onChangeDateFrom.bind(this);
+        this.onChangeDateTo = this.onChangeDateTo.bind(this);
+        this.onPayPalSuccess = this.onPayPalSuccess.bind(this);
+
+    }
+
+    async componentDidMount() {
+        try {
+            let token = await localStorage.getItem('token');
+            this.setState({ token });
+        } catch (error) {
+
+        }
     }
 
     selectPackage(i) {
@@ -58,22 +73,51 @@ export default class Packages extends Component {
         this.setState({ selectedPackages: selected, total: total });
     }
 
-    onChangeDate(e) {
-        this.setState({ date: e })
+    onChangeDateFrom(e) {
+        console.log(this.state)
+        this.setState({ dateFrom: e })
     }
 
-    onPayPalSuccess(payment) {
-        console.log("Paypal:", payment);
-        notification.success({ message: 'ORDER PLACED SUCCESSFULLY!' })
+    onChangeDateTo(e) {
+        console.log(this.state)
+        this.setState({ dateTo: e })
+    }
+
+    async onPayPalSuccess(payment) {
+        try {
+            let newOrder = {
+                "currency": "USD",
+                "transaction": "CODE_PAYPAL",
+                from: moment(this.state.dateFrom).unix(),
+                to: moment(this.state.dateTo).unix(),
+                "orderDetailsList": this.state.selectedPackages.map(p => { return { name: this.state.packages[p].name, cost: this.state.packages[p].cost, description: this.state.packages[p].description } })
+            }
+            let res = await axios.post('http://api.juandiii.com/api/orders/created', newOrder, { headers: { Authorization: "Bearer " + this.state.token } });
+            console.log(newOrder)
+            console.log('res', res.data)
+            this.props.history.push("/orders");
+            notification.success({ message: 'ORDER PLACED SUCCESSFULLY!' })
+        } catch (error) {
+            if (error.response.status === 401) {
+                this.logout();
+            }
+            console.log(error)
+            notification.error({ message: 'COULD NOT PLACE ORDER!' });
+        }
+    }
+
+    logout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        this.props.history.push("/packages");
+        notification.error({ message: 'YOU HAVE BEEN LOGED OUT!' })
     }
 
     onPayPalCancel(data) {
-        console.log("Paypal:", data);
         notification.info({ message: 'ORDER CANCELLED' })
     }
 
     onPayPalError(err) {
-        console.log("Paypal:", err);
         notification.error({ message: 'ERROR PLACING ORDER!' })
     }
 
@@ -91,7 +135,10 @@ export default class Packages extends Component {
                                 <h1 style={{ color: "#fff" }}><Icon type="camera" theme="twoTone" /> EVENTS MEDIA</h1>
                             </Col>
                             <Col span={1}>
-                                <Button style={{ right: 0 }} type="dashed" shape="round" ghost><Icon type="logout" /> LOGOUT</Button>
+                                {
+                                    this.state.token ? <Button onClick={this.logout} style={{ right: 0 }} type="dashed" shape="round" ghost><Icon type="logout" /> LOGOUT</Button>
+                                        : <Button onClick={() => this.props.history.push("/")} style={{ right: 0 }} type="dashed" shape="round" ghost><Icon type="login" /> LOGIN</Button>
+                                }
                             </Col>
                         </Row>
                     </Header>
@@ -101,7 +148,8 @@ export default class Packages extends Component {
                             <Title><Icon type="shop" theme="twoTone" /> PACKAGES</Title>
                             <Divider dashed />
                             <FormItem label="1. Select Order Date:">
-                                <DatePicker showTime use12Hours placeholder="Select Time" onOk={this.onChangeDate} />
+                                <DatePicker placeholder="Select From" onChange={this.onChangeDateFrom} />
+                                <DatePicker placeholder="Select To" onChange={this.onChangeDateTo} />
                             </FormItem>
                             <Divider dashed />
                             <p>2. Select your Packages:</p>
@@ -132,8 +180,12 @@ export default class Packages extends Component {
                     bottom: "0",
                     boxShadow: "rgba(0, 0, 0, 0.29) 0px 0px 8px 0px"
                 }}>
-                    <Statistic title="Total" value={this.state.total} precision={2} />
-                    <PaypalExpressBtn client={client} currency={'USD'} total={this.state.total} onError={this.onPayPalError} onSuccess={this.onPayPalSuccess} onCancel={this.onPayPalCancel} />
+                    {
+                        this.state.token ? <>
+                            <Statistic title="Total" value={this.state.total} precision={2} />
+                            <PaypalExpressBtn client={client} currency={'USD'} total={this.state.total} onError={this.onPayPalError} onSuccess={this.onPayPalSuccess} onCancel={this.onPayPalCancel} />
+                        </> : <strong>LOGIN TO PURCHASE</strong>
+                    }
                 </Card>
             </>
         )
