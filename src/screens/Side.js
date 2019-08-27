@@ -46,6 +46,10 @@ export default class Side extends Component {
                         <Icon type="area-chart" />
                         <span>Stats</span>
                     </Menu.Item>}
+                    {this.state.token && <Menu.Item key="5" onClick={() => window.location.href = "/report"}>
+                        <Icon type="file" />
+                        <span>Report</span>
+                    </Menu.Item>}
                 </Menu>
             </Sider>
         )

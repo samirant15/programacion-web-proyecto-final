@@ -7,6 +7,7 @@ import Checkout from './screens/Checkout';
 import Orders from './screens/Orders';
 import Users from './screens/Users';
 import Stats from './screens/Stats';
+import Report from './screens/Report';
 import 'antd/dist/antd.css';
 
 class App extends Component {
@@ -22,6 +23,7 @@ class App extends Component {
         <Route path="/orders" exact render={props => (<Orders history={props.history} />)} />
         <Route path="/users" exact render={props => (<Users history={props.history} />)} />
         <Route path="/stats" exact render={props => (<Stats history={props.history} />)} />
+        <Route path="/report" exact render={props => (<Report history={props.history} />)} />
       </Router>
     );
   }

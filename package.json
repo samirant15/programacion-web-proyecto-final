@@ -10,6 +10,7 @@
     "react-dom": "^16.8.6",
     "react-google-charts": "^3.0.14",
     "react-paypal-express-checkout": "^1.0.5",
+    "react-render-html": "^0.6.0",
     "react-router-dom": "^5.0.1",
     "react-scripts": "3.0.1"
   },

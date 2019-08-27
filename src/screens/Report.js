@@ -9,43 +9,20 @@ const { SubMenu } = Menu;
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
 
-const lineChartOptions = { title: "Orders Placed", curveType: "function", legend: { position: "bottom" } };
-let lineChartData = [];
-
-let pieChartData = [];
 
 export default class Stats extends Component {
     constructor(props) {
         super(props);
         this.state = {
             token: '',
-            orders: [],
         }
     }
 
     async componentDidMount() {
         try {
             let token = await localStorage.getItem('token');
-            let orders = await axios.get('http://api.juandiii.com/api/orders', { headers: { Authorization: "Bearer " + token } });
 
-            lineChartData = [['DATE', 'TOTAL'], ...orders.data.map(o => { return [moment.unix(o.orderDate / 1000).format('YYYY-MM-DD'), o.total] })];
-
-            let ordersCompleted = 0;
-            let ordersInProcess = 0;
-            let ordersPending = 0;
-
-            orders.data.forEach(o => {
-                if (o.to < moment().unix())
-                    ordersCompleted++
-                else if (o.from > moment().unix())
-                    ordersPending++
-                else
-                    ordersInProcess++;
-            })
-
-            pieChartData = [['Type', 'Amount'], ['Completed Orders', ordersCompleted], ['Orders in process', ordersInProcess], ['Pending Orders', ordersPending]];
-
-            this.setState({ orders: orders.data, token })
+            this.setState({ token })
         } catch (error) {
             if (error.response.status === 401) {
                 this.logout();
@@ -77,30 +54,13 @@ export default class Stats extends Component {
                         </Row>
                     </Header>
                     <Layout>
-                        <Side tab={'4'} history={this.props.history} />
+                        <Side tab={'5'} history={this.props.history} />
                         <Content style={{ background: '#fff', padding: 24, margin: 24, minHeight: 280, }}>
                             <Title><Icon type="fund" theme="twoTone" /> STATS</Title>
                             <Divider dashed />
                             <Row>
-                                <Col span={12}>
-                                    <Chart
-                                        chartType="LineChart"
-                                        width="100%"
-                                        height="400px"
-                                        data={lineChartData}
-                                        options={lineChartOptions}
-                                    />
-                                </Col>
-                                <Col span={6}>
-                                    <Chart
-                                        width={'500px'}
-                                        height={'300px'}
-                                        chartType="PieChart"
-                                        loader={<div>Loading Chart...</div>}
-                                        data={pieChartData}
-                                        options={{ title: 'Orders status', }}
-                                    />
-                                </Col>
+                                <button id="button" disabled>Export</button>
+                                <div id="container"></div>
                             </Row>
                         </Content>
                     </Layout>
