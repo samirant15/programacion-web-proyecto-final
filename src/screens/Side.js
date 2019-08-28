@@ -14,7 +14,8 @@ export default class Side extends Component {
     async componentDidMount() {
         try {
             let token = await localStorage.getItem('token');
-            this.setState({ token });
+            let user = await localStorage.getItem('user');
+            this.setState({ token, user: JSON.parse(user) });
         } catch (error) {
 
         }
@@ -38,15 +39,15 @@ export default class Side extends Component {
                         <Icon type="history" />
                         <span>Orders</span>
                     </Menu.Item>}
-                    {this.state.token && <Menu.Item key="3" onClick={() => this.props.history.push("/users")}>
+                    {this.state.token && this.state.user.employee && <Menu.Item key="3" onClick={() => this.props.history.push("/users")}>
                         <Icon type="user" />
                         <span>Users</span>
                     </Menu.Item>}
-                    {this.state.token && <Menu.Item key="4" onClick={() => this.props.history.push("/stats")}>
+                    {this.state.token && this.state.user.employee && <Menu.Item key="4" onClick={() => this.props.history.push("/stats")}>
                         <Icon type="area-chart" />
                         <span>Stats</span>
                     </Menu.Item>}
-                    {this.state.token && <Menu.Item key="5" onClick={() => window.location.href = "/report"}>
+                    {this.state.token && this.state.user.employee && <Menu.Item key="5" onClick={() => window.location.href = "/report"}>
                         <Icon type="file" />
                         <span>Report</span>
                     </Menu.Item>}

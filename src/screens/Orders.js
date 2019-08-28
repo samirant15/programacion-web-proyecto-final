@@ -27,7 +27,6 @@ export default class Orders extends Component {
             let token = await localStorage.getItem('token');
             let users = await axios.get('http://api.juandiii.com/api/users', { headers: { Authorization: "Bearer " + token } });
             let orders = await axios.get('http://api.juandiii.com/api/orders', { headers: { Authorization: "Bearer " + token } });
-
             this.setState({ orders: orders.data, users: users.data, token })
         } catch (error) {
             if (error.response.status === 401) {
@@ -77,7 +76,7 @@ export default class Orders extends Component {
                 title: 'Asigned',
                 dataIndex: 'asigned',
                 key: 'asigned',
-                render: e => e ? e.firstName + " " + e.lastName : ""
+                render: e => e ? e.firstName + " " + e.lastName : "Queue"
             },
             {
                 title: 'Action',
@@ -109,7 +108,7 @@ export default class Orders extends Component {
                                     <Title><Icon type="history" style={{ color: '#1890ff' }} /> ORDERS</Title>
                                     <Divider dashed />
                                     <Table dataSource="" columns={columns} dataSource={this.state.orders.length > 0 && this.state.users.length > 0 ? this.state.orders.map((u, i) => {
-                                        return { key: i, date: moment.unix(u.orderDate / 1000).format('YYYY-MM-DD'), from: moment.unix(u.from).format('YYYY-MM-DD'), to: moment.unix(u.to).format('YYYY-MM-DD'), total: u.total, asigned: this.state.users.find(usr => usr.id == u.userId), view: u }
+                                        return { key: i, date: moment.unix(u.orderDate / 1000).format('YYYY-MM-DD'), from: moment.unix(u.from).format('YYYY-MM-DD'), to: moment.unix(u.to).format('YYYY-MM-DD'), total: u.total, asigned: this.state.users.find(usr => usr.id == u.employeeId), view: u }
                                     })
                                         : null} />
                                 </> : <>

@@ -109,7 +109,7 @@ export default class Packages extends Component {
     logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        this.props.history.push("/packages");
+        window.location.reload(true);
         notification.error({ message: 'YOU HAVE BEEN LOGED OUT!' })
     }
 

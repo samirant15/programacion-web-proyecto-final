@@ -56,7 +56,7 @@ export default class Stats extends Component {
                     <Layout>
                         <Side tab={'5'} history={this.props.history} />
                         <Content style={{ background: '#fff', padding: 24, margin: 24, minHeight: 280, }}>
-                            <Title><Icon type="fund" theme="twoTone" /> STATS</Title>
+                            <Title><Icon type="file" theme="twoTone" /> REPORT</Title>
                             <Divider dashed />
                             <Row>
                                 <button id="button" disabled>Export</button>
